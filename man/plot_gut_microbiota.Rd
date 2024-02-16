@@ -101,10 +101,10 @@ Create a plot of taxa relative abundance, clustered by phylogeny with the possib
 \examples{
 data(GlobalPatterns)
 ps_unfiltered <- GlobalPatterns
-my_plot <- plot_gut_microbiota(ps_object = ps_unfiltered, 
-exp_group = 'SampleType', 
+my_plot <- plot_gut_microbiota(ps_object = ps_unfiltered,
+exp_group = 'SampleType',
 subset_group = c("Feces", "Skin"),
-sample_name = 'X.SampleID', 
+sample_name = 'X.SampleID',
 differential_analysis = T,
 fdr_threshold = 0.8)#'
 print(my_plot$plot)
@@ -114,3 +114,6 @@ print(my_plot$significant_table)
 \author{
 Thibault Cuisiniere, Marco Constante, Manuela M. Santos
 }
+
+
+#test
