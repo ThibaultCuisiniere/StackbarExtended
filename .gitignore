@@ -4,6 +4,7 @@
 *Rplots.pdf
 cache/*
 figure/*
+test/*
 vignettes/cache/*
 vignettes/figure/*
 vignettes/*.html
@@ -17,3 +18,5 @@ R/.Rapp.history
 .idea/
 .Rhistory
 R/.Rhistory
+
+
