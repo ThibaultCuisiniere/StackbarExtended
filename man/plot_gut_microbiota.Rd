@@ -106,7 +106,7 @@ exp_group = 'SampleType',
 subset_group = c("Feces", "Skin"),
 sample_name = 'X.SampleID',
 differential_analysis = T,
-fdr_threshold = 0.8)'
+fdr_threshold = 0.8)
 print(my_plot$plot)
 print(my_plot$significant_table)
 
