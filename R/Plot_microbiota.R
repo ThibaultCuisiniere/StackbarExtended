@@ -105,6 +105,16 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
                                 fdr_threshold = 0.05,
                                 sig_lab = T,
                                 ...) {
+  
+  
+  
+  # Validate inputs
+  if (!("phyloseq" %in% class(ps_object))) stop("ps_object must be a phyloseq-class object.")
+  if (!main_level %in% colnames(tax_table(ps_object))) stop("main_level column not found in the tax_table")
+  if (!sub_level %in% colnames(tax_table(ps_object))) stop("sub_level column not found in the tax_table")
+  if (!exp_group %in% names(sample_data(ps_object))) stop("exp_group column not found in the sample_data.")
+  
+  
   #Assure taxa are row
   if (!taxa_are_rows(ps_object)) {
     ps_object <- t(ps_object)
