@@ -1,51 +1,66 @@
-#'Clustered stackbar coupled with DESeq2
+#' Clustered stackbar coupled with DESeq2
 #'
-#'Create a plot of taxa relative abundance, clustered by phylogeny with the possibility to highlight the differentially abundant features.
-#' @param ps_object a phyloseq object. \code{\link{phyloseq-class}}.
-#'  Must have a \code{\link{sample_data}} component.
-#' @param exp_group a column in sample_data containing the experimental group information
-#' @param subset_group default NULL. Groups among the 'exp_group' column to subset
-#' @param sample_name name of the column in sample_data containing the unique sample identifier
-#' @param main_level  Default 'Phylum'. Level to which features will be clustered
-#' @param sub_level Default 'Family'. Level to which taxa will be plotted and analyzed
+#' Create a plot of taxa relative abundance, clustered by phylogeny with the possibility to highlight the differentially abundant features.
+#' 
+#' @param ps_object A [phyloseq-class] object. Must have a [sample_data], [otu_table], and [tax_table] components.
+#' @param exp_group A column in the [sample_data] containing the experimental group information.
+#' @param subset_group Default NULL. Groups among the 'exp_group' column from the [sample_data] object to subset.
+#' @param sample_name Name of the column in [sample_data] containing the unique sample identifier.
+#' @param main_level  Default 'Phylum'. Level present in the [tax_table] to which taxa will be clustered.
+#' @param sub_level Default 'Family'. Level present in the [tax_table] to which taxa will be plotted and analyzed.
 #' @param threshold Default 1%, threshold to regroup taxa with lower relative abundance into the 'other' groups
-#' @param n_phy Default 4, number of main_level to plot. Same number of color must be given in the 'hues' parameter.
-#' @param hues Color used to represent main_level, should be the same number than n_phy parameter.
-#' @param color_bias Define the gradiant of shades among the colors
-#' @param text_size control the text size. see ggplot2
-#' @param legend_size control the legend text size. see ggplot2
-#' @param x_axis_size control the x axis text size. see ggplot2
-#' @param differential_analysis Default TRUE. Whether or not use DESeq2 to do a differential abundance analysis
-#' @param test Default 'Wald'. see DESeq2
-#' @param fitType Default "parametric", see DESeq2
-#' @param sfType Default "ratio",see DESeq2
-#' @param betaPrior Default FALSE,see DESeq2
-#' @param reduced Default FALSE,see DESeq2
-#' @param quiet Default FALSE,see DESeq2
-#' @param minReplicatesForReplace Default '7',see DESeq2
-#' @param modelMatrixType Default "standard",see DESeq2
-#' @param useT Default FALSE,see DESeq2
-#' @param minmu see DESeq2
-#' @param parallel Default FALSE,see DESeq2
-#' @param BPPARAM see DESeq2
-#' @param ... additionnal parameters passed into the phyloseq_to_deseq2 functions, see Phyloseq
+#' @param n_phy Default 4, number of main_level to plot. Same number of colors must be given in the 'hues' parameter.
+#' @param hues Color used to represent main_level, should be the same number than n_phy parameter. See [colorRampPalette].
+#' @param color_bias Define the gradiant of shades among the colors. See [colorRampPalette].
+#' @param text_size Control the text size of the graph. See [ggplot2].
+#' @param legend_size Control the legend text size of the graph. see ggplot2. See [ggplot2].
+#' @param x_axis_size Control the x axis text size of the graph. see ggplot2. See [ggplot2].
+#' @param differential_analysis Default TRUE. Whether or not use DESeq2 to do a differential abundance analysis. See [DESeq2-package].
+#' @param test Default 'Wald'. See [DESeq2-package].
+#' @param sig_lab Default TRUE. Wheter add stars after taxa name reflecting statistical significance. 
+#' @param fitType Default "parametric". See [DESeq2-package].
+#' @param sfType Default "ratio". See [DESeq2-package].
+#' @param betaPrior Default FALSE.See [DESeq2-package].
+#' @param reduced Default FALSE. See [DESeq2-package].
+#' @param quiet Default FALSE. See [DESeq2-package].
+#' @param minReplicatesForReplace Default '7'. See [DESeq2-package].
+#' @param modelMatrixType Default "standard". See [DESeq2-package].
+#' @param useT Default FALSE. See [DESeq2-package].
+#' @param minmu See [DESeq2-package].
+#' @param parallel Default FALSE. See [DESeq2-package].
+#' @param BPPARAM See [DESeq2-package].#' 
+#' @param ... additionnal parameters passed into the \code{\link{phyloseq_to_deseq2}} functions, see [Phyloseq].
+#' 
 #'
-#' @return A list containing  ggplot $plot, object and if differential_analysis = TRUE, a dataframe with DESeq2 outputs of significant features $significant_table
+#'
+#' @return A [list] containing  [ggplot2] '$plot' object and, if differential_analysis = TRUE, a [dataframe] from \code{\link{results}} DESeq2 function output of significant features '$significant_table'.
 #'
 #' @examples
+#' 
+#' \dontrun{
 #' data(GlobalPatterns)
 #' ps_unfiltered <- GlobalPatterns
+#' 
 #' my_plot <- plot_gut_microbiota(ps_object = ps_unfiltered,
 #' exp_group = 'SampleType',
 #' subset_group = c("Feces", "Skin"),
 #' sample_name = 'X.SampleID',
 #' differential_analysis = T,
-#' fdr_threshold = 0.8)#'
+#' sig_lab = T,
+#' fdr_threshold = 0.8)
+#' 
 #' print(my_plot$plot)
 #' print(my_plot$significant_table)
 #'
-#' @export
+#'}
 #'
+#' @export
+#' 
+#' @seealso [phyloseq]
+#' @seealso [DESeq2-package]
+#' @seealso [ggplot2]
+#' 
+
 #' @author Thibault Cuisiniere, Marco Constante, Manuela M. Santos
 #'
 #'
@@ -59,9 +74,6 @@
 #' @import forcats
 #' @import DESeq2
 #'
-#'
-#'
-
 
 
 plot_gut_microbiota <- function(ps_object = ps_unfiltered,
@@ -154,7 +166,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
 
   topx <- otu_tax_f %>%
     dplyr::group_by(!!as.name(main_level)) %>%
-    dplyr::summarise(sum_top = sum(c_across(position))) %>%
+    dplyr::summarise(sum_top = sum(c_across(all_of(position)))) %>%
     dplyr::arrange(desc(sum_top)) %>%
     dplyr::slice_head(n = n_phy)
 
@@ -386,14 +398,14 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     #    guides(fill=guide_legend(nrow=2))
     guides(fill = guide_legend(reverse = FALSE, title = "")) +
     theme(
-      line = element_line(colour = "black", size = .5),
+      line = element_line(colour = "black", linewidth = .5),
       text = element_text(size = 9),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       #     plot.title = element_text(size = 6, family="Arial"),
       panel.border = element_blank(),
       #axis.text.x = element_text(angle=90, vjust=1),
-      axis.line = element_line(colour = "black", size = .5)
+      axis.line = element_line(colour = "black", linewidth = .5)
     )
   p <- p + theme_bw() +
     theme(
