@@ -309,6 +309,15 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   #Add exp_group to df_long
   df_long <- left_join(df_long, meta, by = sample_name)
 
+  
+  if (differential_analysis &&
+      length(unique(meta[[exp_group]])) != 2) {
+    
+    print("The number of experimental group to test is not equal to 2, no differential abundance testing will be perform")
+    differential_analysi <- F
+    
+  }
+  
 
   # Differential abundance analysis using DESeq2 : 2 groups only
   if (differential_analysis &&
