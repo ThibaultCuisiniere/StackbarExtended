@@ -1,12 +1,5 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # StackbarExtended: R Package for Visualizing and Analyzing Compositional Data
 
-::: {align="center"}
 
 <br /> <br />
 <a href="https://github.com/ThibaultCuisiniere/stackbarextended/issues/new?assignees=&labels=bug&template=01_BUG_REPORT.md&title=bug%3A+">Report
@@ -15,7 +8,6 @@ a Bug</a> ·
 a Feature</a> .
 <a href="https://github.com/ThibaultCuisiniere/stackbarextended/issues/new?assignees=&labels=question&template=04_SUPPORT_QUESTION.md&title=support%3A+">Ask
 a Question</a>
-:::
 
 ------------------------------------------------------------------------
 
@@ -28,7 +20,7 @@ A major advantage of StackbarExtended is that it integrates graphical representa
 
 <details>
 
-<summary>Screenshots</summary>
+<summary>Screenshot</summary>
 
 <br>
 
@@ -119,5 +111,5 @@ See [LICENSE](https://github.com/ThibaultCuisiniere/StackbarExtended/blob/master
 ## Citation
 
 
-##Applications of StackbarExtended
+## Applications of StackbarExtended
 
