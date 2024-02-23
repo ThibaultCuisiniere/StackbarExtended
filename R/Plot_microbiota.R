@@ -28,7 +28,7 @@
 #' @param useT Default FALSE. See [DESeq2-package].
 #' @param minmu See [DESeq2-package].
 #' @param parallel Default FALSE. See [DESeq2-package].
-#' @param BPPARAM See [DESeq2-package].#' 
+#' @param BPPARAM See [DESeq2-package].
 #' @param ... additionnal parameters passed into the \code{\link{phyloseq_to_deseq2}} functions, see [Phyloseq].
 #' 
 #'
