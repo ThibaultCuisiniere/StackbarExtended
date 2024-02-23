@@ -94,7 +94,7 @@ plot_gut_microbiota(
 \item{...}{additionnal parameters passed into the \code{\link{phyloseq_to_deseq2}} functions, see \link{Phyloseq}.}
 }
 \value{
-A \link{list} containing  \link{ggplot2} '$plot' object and, if differential_analysis = TRUE, a \link{dataframe} from \code{\link{results}} with DESeq2 outputs of significant features '$significant_table'
+A \link{list} containing  \link{ggplot2} '$plot' object and, if differential_analysis = TRUE, a \link{dataframe} from \code{\link{results}} DESeq2 function output of significant features '$significant_table'.
 }
 \description{
 Create a plot of taxa relative abundance, clustered by phylogeny with the possibility to highlight the differentially abundant features.
