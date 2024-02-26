@@ -314,7 +314,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       length(unique(meta[[exp_group]])) != 2) {
     
     print("The number of experimental group to test is not equal to 2, no differential abundance testing will be perform")
-    differential_analysi <- F
+    differential_analysis <- F
     
   }
   

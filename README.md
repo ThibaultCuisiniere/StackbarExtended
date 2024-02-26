@@ -1,3 +1,8 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 # StackbarExtended: R Package for Visualizing and Analyzing Compositional Data
 
 
@@ -13,10 +18,10 @@ a Question</a>
 
 ## Overview
 
-> StackbarExtended is an R package including methods to automatically plot and perform differential abundance analysis of compositional data.
+ StackbarExtended is an R package including methods to automatically plot and perform differential abundance analysis of compositional data.
 A major advantage of StackbarExtended is that it integrates graphical representation of the samples' composition and differential abundance results into a single, publication-ready figure, while allowing a high level of personalization and being easy to use.
 
->The main function `plot_gut_microbiota()` function uses in combination the [`DESeq2`](https://github.com/thelovelab/DESeq2) and [`ggplot2`](https://github.com/tidyverse/ggplot2) packages. 
+The main function `plot_gut_microbiota()` function uses in combination the [`DESeq2`](https://github.com/thelovelab/DESeq2) and [`ggplot2`](https://github.com/tidyverse/ggplot2) packages. 
 
 <details>
 
@@ -38,7 +43,7 @@ A major advantage of StackbarExtended is that it integrates graphical representa
 
 ### Installation
 
->StackbarExtended package can be installed via Github. Users should have R installed on their computer before installing StackbarExtended. R can be downloaded here: http://www.r-project.org/. To install the latest version of StackbarExtended package via Github, run following commands in R:
+StackbarExtended package can be installed via Github. Users should have R installed on their computer before installing StackbarExtended. R can be downloaded here: http://www.r-project.org/. To install the latest version of StackbarExtended package via Github, run following commands in R:
 
 ```
 if (!require("devtools"))
