@@ -45,6 +45,7 @@
 #' exp_group = 'SampleType',
 #' subset_group = c("Feces", "Skin"),
 #' sample_name = 'X.SampleID',
+#' hues = c("Greens", "Blues", "Oranges", "Purples"),
 #' differential_analysis = T,
 #' sig_lab = T,
 #' fdr_threshold = 0.05)
