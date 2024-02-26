@@ -47,7 +47,7 @@
 #' sample_name = 'X.SampleID',
 #' differential_analysis = T,
 #' sig_lab = T,
-#' fdr_threshold = 0.8)
+#' fdr_threshold = 0.05)
 #' 
 #' print(my_plot$plot)
 #' print(my_plot$significant_table)
