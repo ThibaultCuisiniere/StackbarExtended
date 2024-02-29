@@ -87,9 +87,9 @@ plot_gut_microbiota(
 
 \item{parallel}{Default FALSE. See \link{DESeq2-package}.}
 
-\item{BPPARAM}{See \link{DESeq2-package}.#'}
+\item{BPPARAM}{See \link{DESeq2-package}.}
 
-\item{sig_lab}{Default TRUE. Wheter add stars after taxa name reflecting statistical significance.}
+\item{sig_lab}{Default TRUE. Whether to add stars after taxa name reflecting statistical significance.}
 
 \item{...}{additionnal parameters passed into the \code{\link{phyloseq_to_deseq2}} functions, see \link{Phyloseq}.}
 }
@@ -109,9 +109,10 @@ my_plot <- plot_gut_microbiota(ps_object = ps_unfiltered,
 exp_group = 'SampleType',
 subset_group = c("Feces", "Skin"),
 sample_name = 'X.SampleID',
+hues = c("Greens", "Blues", "Oranges", "Purples"),
 differential_analysis = T,
 sig_lab = T,
-fdr_threshold = 0.8)
+fdr_threshold = 0.05)
 
 print(my_plot$plot)
 print(my_plot$significant_table)
