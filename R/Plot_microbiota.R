@@ -17,7 +17,7 @@
 #' @param x_axis_size Control the x axis text size of the graph. see ggplot2. See [ggplot2].
 #' @param differential_analysis Default TRUE. Whether or not use DESeq2 to do a differential abundance analysis. See [DESeq2-package].
 #' @param test Default 'Wald'. See [DESeq2-package].
-#' @param sig_lab Default TRUE. Wheter add stars after taxa name reflecting statistical significance. 
+#' @param sig_lab Default TRUE. Whether to add stars after taxa name reflecting statistical significance. 
 #' @param fitType Default "parametric". See [DESeq2-package].
 #' @param sfType Default "ratio". See [DESeq2-package].
 #' @param betaPrior Default FALSE.See [DESeq2-package].
@@ -116,7 +116,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   if (!exp_group %in% names(sample_data(ps_object))) stop("exp_group column not found in the sample_data.")
   
   
-  #Assure taxa are row
+  #Assure taxa are rows
   if (!taxa_are_rows(ps_object)) {
     ps_object <- t(ps_object)
   }
@@ -128,7 +128,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
 
   }
 
-  #transform in proportional
+  #transform to relative abundance 
   ps_prop <-
     transform_sample_counts(ps_object, function(OTU)
       ((OTU / sum(OTU)) * 100))
@@ -158,14 +158,14 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
 
   #create a vector, if True, the ASV mean among the samples is higher than the threshold
 
-  ##keep the position of the column storing the abundance of the taxa in the otu_tax_f object
+  #keep the position of the column storing the abundance of the taxa in the otu_tax_f object
   position <- ncol(tax) + 1:(ncol(otu_tax_f) - ncol(tax))
 
   message(paste0('\n', length(position), ' samples are analyzed \n'))
 
   #Create 2 vectors in the dataframe :
   #1 storing the abundance mean of the taxa
-  #2 T or F this taxa is above the define thrshold of filtering
+  #2 T or F this taxa is above the define threshold of filtering
 
   otu_tax_f <- otu_tax_f %>%
     rowwise() %>%
@@ -182,20 +182,11 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     dplyr::slice_head(n = n_phy)
 
 
-  #Create a vector, TRUE when the phylum belong to the top X, the ones we want to plot
+  #Create a vector, TRUE when the phylum belongs to the top X, the ones we want to plot
   otu_tax_f <- mutate(otu_tax_f,
                       selected_top = !!as.name(main_level) %in% pull(topx[, main_level]))
 
-  #Create a column to create the legend of the graphs :
-  #1 higher than the threshold and in the main_level selected -> name of the sub_level
-  #1.1 if sub_level is NA -> Other_main_level_name
-
-  #2 belong to the main_level selected, but sub_level bellow the threshold -> other_phylum name
-
-  #3 all the others -> "Other"
-
-  #replace NA
-
+  #Add a column 'plot_taxa' to create the legend of the graphs :
 
   otu_tax_f <- otu_tax_f %>%
     mutate(
@@ -232,7 +223,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     as_tibble(matrix(nrow = 0, ncol = length(colnames(otu_tax_f))),
               .name_repair = ~ colnames(otu_tax_f))
 
-  #loop through selected phylum to add color
+  #loop through selected main_level to add color
   i <- 1
 
   for (i in 1:nrow(topx)) {
@@ -257,7 +248,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       getPalette(length(unique(temp$plot_taxa)) + 1)
 
 
-    #loop among the low level feature and add color to it
+    #loop among the sub_level feature and add color to it
     u <- 1
     for (u in 1:length(unique(temp$plot_taxa))) {
       print(unique(temp$plot_taxa)[u])
@@ -274,16 +265,16 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   }
 
 
-  #Selected features that don't belong to high abundances level and assigned the black color to them
+  #Select features that don't belong to high abundance levels and assigned the black color to them
   unselescted <- otu_tax_f %>%
     filter(!(!!as.name(main_level) %in% pull(topx[, main_level])))
 
   unselescted$MyColors <- '#000000'
 
-  #Merge the 2 dataframe
+  #Merge the 2 dataframes
   df <- rbind(df, unselescted)
 
-  #order df to define the order that will be plotted, first the selected main_level, then the main_level in alphabetical order, then the mean
+  #Order df to define the order that will be plotted, first the selected main_level, then the main_level in alphabetical order, then the mean abundance
 
   df <- df %>% ungroup %>%
     dplyr::arrange(desc(selected_top),!!as.name(main_level) , desc(Mean))
@@ -306,7 +297,6 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   )
 
 
-
   #Add exp_group to df_long
   df_long <- left_join(df_long, meta, by = sample_name)
 
@@ -325,9 +315,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       length(unique(meta[[exp_group]])) == 2) {
     fam_glom <- tax_glom(ps_object, taxrank = sub_level)
 
-    #ps_object is already filtered (or not but contains only 2 groups) with user defined group.
-
-    #remove OTU with 0 count accros the dataset
+    #remove OTU with 0 count across the dataset
 
     if (sum(rowSums(otu_table(ps_object)) == 0) > 0) {
       ps_object <-
@@ -338,20 +326,25 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     # Coerce count data to matrix of integers
     countData = round(as(otu_table(fam_glom), "matrix"), digits = 0)
     colData = data.frame(sample_data(fam_glom))
-    # Create the DESeq data set, dds.
+    # Create the DESeq2 data set
 
     diagdds = phyloseq_to_deseq2(fam_glom,  formula(paste("~", exp_group)), ...)
 
     # Run DESeq2 analysis
     diag = DESeq(diagdds, test = test, fitType = fitType)
 
-    # Get differentially abundant features
+    # Get the differentially abundant features
     results <- results(diag)
 
-    # Extract features with adjusted p-value below a threshold
+    # Extract features with adjusted p-value below the threshold
     significant_features <- subset(results, padj < fdr_threshold)
+    
+    #Check if significant features were detected
+    if ( nrow(significant_features) == 0){
+      message("no significant feature detected")
+    } else { 
 
-    #We have significant ASV, we want to link them to the level we are interested (family)
+    #We have significantly different taxa, we link them to their sub_level
 
     significant_features <- as.data.frame(cbind(significant_features,
                                                 tax_table(fam_glom)[rownames(tax_table(fam_glom)) %in% rownames(significant_features)]))
@@ -380,25 +373,24 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
 
     }
 
-    #put in bold significant features
+    #put significant features in bold 
     df_long$legend_label <-
       ifelse(
         df_long$differential_abundance,
         paste0("<b>", df_long$plot_taxa, "</b>"),
         as.character(df_long$plot_taxa)
       )
-    df_long$plot_taxa <-   df_long$legend_label
+    df_long$plot_taxa <- df_long$legend_label
     df_long$plot_taxa <-
       factor(df_long$plot_taxa, levels = unique(df_long$plot_taxa))
 
   }
 
-
+  }
+  
   #Prepare the color vector
   MyColors <- df_long$MyColors
   names(MyColors) <- df_long$plot_taxa
-  unique(df_long$plot_taxa)
-  unique(MyColors)
 
   MyColors2 <- unique(df_long$MyColors)
   names(MyColors2) <- unique(df_long$plot_taxa)
@@ -411,20 +403,14 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       fill = plot_taxa
     )) +
     geom_bar(stat = "identity", width = 0.85) +
-    #    xlab("\nMouse") +
     ylab("Relative abundance (%)\n") +
-    #    guides(fill=FALSE) +
-    #    theme(legend.position="bottom") +
-    #    guides(fill=guide_legend(nrow=2))
     guides(fill = guide_legend(reverse = FALSE, title = "")) +
     theme(
       line = element_line(colour = "black", linewidth = .5),
       text = element_text(size = 9),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      #     plot.title = element_text(size = 6, family="Arial"),
       panel.border = element_blank(),
-      #axis.text.x = element_text(angle=90, vjust=1),
       axis.line = element_line(colour = "black", linewidth = .5)
     )
   p <- p + theme_bw() +
@@ -438,18 +424,14 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
         size = x_axis_size
       ),
       text = element_text(size = text_size),
-      # legend.text=element_text(size=legend_size),
       legend.text = element_markdown(size = legend_size)
     )
-  #p<-p+ scale_fill_manual(values=MyColors)
+  
   p <- p + scale_fill_manual('plot_taxa', values = MyColors2)
 
   p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x")
 
   p
-
-
-
 
   if (differential_analysis == T) {
     return(list(significant_table = significant_features, plot = p))
