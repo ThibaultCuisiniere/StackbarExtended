@@ -68,7 +68,7 @@
 #' @import phyloseq
 #' @import ggplot2
 #' @import ggtext
-#' @import tidyverse
+#' @import dplyr
 #' @import reshape2
 #' @import RColorBrewer
 #' @import DESeq2
