@@ -128,5 +128,5 @@ print(my_plot$significant_table)
 \link{ggplot2}
 }
 \author{
-Thibault Cuisiniere, Marco Constante, Manuela M. Santos
+Thibault Cuisiniere,  Manuela M. Santos
 }
