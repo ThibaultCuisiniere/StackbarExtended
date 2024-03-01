@@ -1,12 +1,20 @@
 Package: StackbarExtended
-Title: What the Package Does (One Line, Title Case)
+Title: Stacked Bar Graph And Differential Abundance Analysis For Microbiota Data
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Thibault", "Cuisiniere", ,"thibault.cuisiniere@umontreal.ca", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-7325-9476"))
+Description: StackbarExtended provide tool for visualizing and analyzing gut microbiota compositions through clustered stacked bar plots. Designed to work with phyloseq-class objects, it enables users to cluster taxa by phylogeny and highlight differentially abundant features. It accepts a wide range of parameters for detailed customization, including experimental group selection, taxa abundance thresholds, and color schemes, allowing publication-ready graphs creation. 
+License: GPL-3
+Imports:
+  phyloseq (>= 1.46.0),
+  DESeq2 (>= 1.42.0),
+  ggplot2 (>= 3.4.4),
+  ggtext (>= 0.1.2),
+  tidyverse (>= 2.0.0),
+  reshape2 (>= 1.4.4),
+  RColorBrewer (>= 1.1-3)
+Depends: R (>= 4.0.0)
+URL: https://github.com/ThibaultCuisiniere/StackbarExtended   
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
