@@ -196,16 +196,16 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
         high_abundance == TRUE  &
           selected_top == TRUE &
           !!as.name(sub_level) == "Unkwown"  ~
-          paste0("Others_",!!as.name(main_level)),
+          paste0("Others ",!!as.name(main_level)),
         high_abundance == TRUE  &
           selected_top == TRUE  &
           !!as.name(sub_level) != "Unkwown"  ~ !!as.name(sub_level),
         high_abundance == FALSE &
-          selected_top == TRUE  ~ paste0("Others_", !!as.name(main_level)),
-        selected_top   == FALSE ~ paste0("Others"),
+          selected_top == TRUE  ~ paste0("Others", !!as.name(main_level)),
+        selected_top   == FALSE ~ paste0("Others", main_level),
         high_abundance == TRUE  &
           selected_top == TRUE &
-          is.na(!!as.name(sub_level)) == TRUE  ~ paste0("Unknown_", !!as.name(main_level))
+          is.na(!!as.name(sub_level)) == TRUE  ~ paste0("Unknown ", !!as.name(main_level))
       )
     )
   
@@ -221,10 +221,11 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   }
   
   
-  #initialize the dataframe
+  #initialize 
   df <-
     as_tibble(matrix(nrow = 0, ncol = length(colnames(otu_tax_f))),
               .name_repair = ~ colnames(otu_tax_f))
+  main_level_col <- c()
   
   #loop through selected main_level to add color
   i <- 1
@@ -256,6 +257,12 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     col <-
       getPalette(length(unique(temp$plot_taxa)) + 1)
     
+    #store the darkestcolor of the palette to plot main_level legend graph
+    if (length(col) >= 2) {
+      main_level_col[i] <-   col[length(col)-1]
+    } else {
+      main_level_col[i] <-   col[length(col)]
+    }  
     
     #loop among the sub_level feature and add color to it
     u <- 1
@@ -406,6 +413,19 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   MyColors2 <- unique(df_long$MyColors)
   names(MyColors2) <- unique(df_long$plot_taxa)
   
+  #add the black color to "Other_main_level"
+  main_level_col[length(main_level_col)+1] <- '#000000'
+  
+  #Order the colors
+  names(main_level_col) <-c(pull(topx[,main_level]), paste0("Others "))
+  main_level_order <- factor( names(main_level_col), levels =names(main_level_col))
+  main_level_col <- main_level_col[order(match(main_level_col,  main_level_order))]
+  
+  #reorder main_level factor in order to create main_level legend
+  df_long[,main_level] <- factor(df_long[,main_level] )
+  lev <- levels(df_long[,main_level])
+  last <- match(paste0("Others ", main_level), lev)
+  df_long[,main_level] <- factor(df_long[,main_level], levels = names(main_level_col))
   
   p <-
     ggplot(df_long, aes(
@@ -415,7 +435,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     )) +
     geom_bar(stat = "identity", width = 0.85) +
     ylab("Relative abundance (%)\n") +
-    guides(fill = guide_legend(reverse = FALSE, title = "")) +
+    guides(fill = guide_legend(reverse = FALSE, title = sub_level)) +
     theme(
       line = element_line(colour = "black", linewidth = .5),
       text = element_text(size = 9),
@@ -423,12 +443,14 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       panel.grid.minor = element_blank(),
       panel.border = element_blank(),
       axis.line = element_line(colour = "black", linewidth = .5)
-    )
-  p <- p + theme_bw() +
+    ) +
+    theme_bw() +
     theme(
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
       panel.border = element_blank(),
+      legend.position = "right",
+      legend.box = "vertical",
       axis.text.x = element_text(
         angle = 45,
         hjust = 1,
@@ -436,11 +458,15 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       ),
       text = element_text(size = text_size),
       legend.text = element_markdown(size = legend_size)
-    )
-  
-  p <- p + scale_fill_manual('plot_taxa', values = MyColors2)
-  
-  p <- p + facet_wrap(~ df_long[[exp_group]] , scales  = "free_x")
+    ) +
+    geom_bar(aes(alpha = df_long[, main_level]), stat = "identity", show.legend = TRUE) +
+    scale_alpha_manual(
+      values = rep(1, length(unique(df_long[, main_level]))),
+      guide = guide_legend(override.aes = list(fill = main_level_col)),
+      name = main_level
+    ) +
+    scale_fill_manual('plot_taxa', values = MyColors2)
+  p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x")
   
   p
   
