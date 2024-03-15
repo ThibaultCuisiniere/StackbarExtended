@@ -188,6 +188,9 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   otu_tax_f <- mutate(otu_tax_f,
                       selected_top = !!as.name(main_level) %in% pull(topx[, main_level]))
   
+  #replace NA by "Unknown" 
+  otu_tax_f[is.na(otu_tax_f)] <- "Unkwown"
+  
   #Add a column 'plot_taxa' to create the legend of the graphs :
   
   otu_tax_f <- otu_tax_f %>%
