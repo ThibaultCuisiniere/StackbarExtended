@@ -204,8 +204,8 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
           selected_top == TRUE  &
           !!as.name(sub_level) != "Unkwown"  ~ !!as.name(sub_level),
         high_abundance == FALSE &
-          selected_top == TRUE  ~ paste0("Others", !!as.name(main_level)),
-        selected_top   == FALSE ~ paste0("Others", main_level),
+          selected_top == TRUE  ~ paste0("Others ", !!as.name(main_level)),
+        selected_top   == FALSE ~ paste0("Others "),
         high_abundance == TRUE  &
           selected_top == TRUE &
           is.na(!!as.name(sub_level)) == TRUE  ~ paste0("Unknown ", !!as.name(main_level))
@@ -320,6 +320,13 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   df_long <- left_join(df_long, meta, by = sample_name)
   
   
+  #Replace low abundance features at level X by "Others "
+  
+  df_long[,main_level] <- ifelse(df_long[,main_level] %in% pull(topx[, main_level]), 
+                                 df_long[,main_level], 
+                                 "Others ")
+  
+  
   if (differential_analysis &&
       length(unique(meta[[exp_group]])) != 2) {
     print(
@@ -425,9 +432,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   main_level_col <- main_level_col[order(match(main_level_col,  main_level_order))]
   
   #reorder main_level factor in order to create main_level legend
-  df_long[,main_level] <- factor(df_long[,main_level] )
-  lev <- levels(df_long[,main_level])
-  last <- match(paste0("Others ", main_level), lev)
+
   df_long[,main_level] <- factor(df_long[,main_level], levels = names(main_level_col))
   
   p <-
