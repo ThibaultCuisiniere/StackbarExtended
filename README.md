@@ -53,7 +53,7 @@ devtools::install_github("ThibaultCuisiniere/StackbarExtended")
 data(ps)
 
 my_plot <- plot_gut_microbiota(
-ps_object = ps,
+  ps_object = ps,
   exp_group = 'timepoint',
   sample_name = 'SampleID',
   hues = c("Purples", "Blues", "Greens", "Oranges"),
