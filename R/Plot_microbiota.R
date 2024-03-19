@@ -337,28 +337,25 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   }
   
   
-  # Differential abundance analysis using DESeq2 : 2 groups only
+  # Differential abundance analysis on sub_level using DESeq2 : 2 groups only
   if (differential_analysis &&
       length(unique(meta[[exp_group]])) == 2) {
     fam_glom <- tax_glom(ps_object, taxrank = sub_level)
     
     #remove OTU with 0 count across the dataset
     
-    if (sum(rowSums(otu_table(ps_object)) == 0) > 0) {
-      ps_object <-
-        prune_taxa(rowSums(otu_table(ps_object)) > 0, ps_object)
+    if (sum(rowSums(otu_table(fam_glom)) == 0) > 0) {
+      fam_glom <-
+        prune_taxa(rowSums(otu_table(fam_glom)) > 0, fam_glom)
       
     }
     
-    # Coerce count data to matrix of integers
-    countData = round(as(otu_table(fam_glom), "matrix"), digits = 0)
-    colData = data.frame(sample_data(fam_glom))
-    # Create the DESeq2 data set
-    
-    diagdds = phyloseq_to_deseq2(fam_glom,  formula(paste("~", exp_group)), ...)
+    diagdds = phyloseq_to_deseq2(fam_glom,  formula(paste("~", exp_group)))
     
     # Run DESeq2 analysis
-    diag = DESeq(diagdds, test = test, fitType = fitType)
+    diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                 betaPrior = betaPrior, quiet= quiet, 
+                 minReplicatesForReplace = minReplicatesForReplace)
     
     # Get the differentially abundant features
     results <- results(diag)
@@ -368,7 +365,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     
     #Check if significant features were detected
     if (nrow(significant_features) == 0) {
-      message("no significant feature detected")
+      message("no significant feature detected at ", sub_level, " level.")
     } else {
       #We have significantly different taxa, we link them to their sub_level
       
@@ -416,6 +413,93 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     
   }
   
+  
+  
+  # Differential abundance analysis on main_level using DESeq2 : 2 groups only
+  if (differential_analysis &&
+      length(unique(meta[[exp_group]])) == 2) {
+    main_glom <- tax_glom(ps_object, taxrank = main_level)
+    
+    #remove OTU with 0 count across the dataset
+    
+    if (sum(rowSums(otu_table(main_glom)) == 0) > 0) {
+      main_glom <-
+        prune_taxa(rowSums(otu_table(main_glom)) > 0, main_glom)
+      
+    }
+    
+    
+    diagdds_main = phyloseq_to_deseq2(main_glom,  formula(paste("~", exp_group)))
+    
+    # Run DESeq2 analysis
+    diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
+                      betaPrior = betaPrior, quiet= quiet, 
+                      minReplicatesForReplace = minReplicatesForReplace)
+    
+    # Get the differentially abundant features
+    results_main <- results(diag_main)
+    
+    # Extract features with adjusted p-value below the threshold
+    significant_features_main <- subset(results_main, padj < fdr_threshold)
+    
+    #Check if significant features were detected
+    if (nrow(significant_features) == 0) {
+      message("no significant feature detected at ", main_level, " level.")
+    } else {
+      #We have significantly different taxa, we link them to their sub_level
+      
+      significant_features_main <-
+        as.data.frame(cbind(significant_features_main,
+                            tax_table(main_glom)[rownames(tax_table(main_glom)) %in% rownames(significant_features_main)]))
+      
+      # Add information to df_long to mark differentially abundant features
+      df_long$differential_abundance_main <- FALSE
+      df_long$differential_abundance_main[df_long[,main_level] %in% significant_features_main[, main_level]] <-
+        TRUE
+      
+      #store the initial main_level names
+      df_long$legend_label_main <- df_long[,main_level]
+      
+      #Add stars to legends if sig_lab is defined as TRUE
+      significant_features_main$stars <- ""
+      
+      if (sig_lab == T) {
+        significant_features_main$stars <- symnum(
+          significant_features_main$`padj`,
+          symbols   = c("***", "**", "*", ""),
+          cutpoints = c(0,  .001, .01, .05, 1),
+          corr      = FALSE
+        )
+        
+        #Add stars to the name of the taxa
+        star_vec_main <-
+          significant_features_main$stars[match(df_long[,main_level], significant_features_main[, main_level])]
+        star_vec_main[is.na(star_vec_main)]  <- ""
+        df_long[,main_level] <- paste0(df_long[,main_level], " ", star_vec_main)
+        
+        
+      }
+      
+      #put significant features in bold
+      
+      
+      df_long[,main_level] <-
+        ifelse(
+          df_long$differential_abundance_main,
+          paste0("<b>", df_long[,main_level], "</b>"),
+          as.character(df_long[,main_level])
+        )
+      #df_long[,main_level] <- df_long$legend_label_main
+      df_long[,main_level] <-
+        factor(df_long[,main_level], levels = unique(df_long[,main_level]))
+      
+    }
+    
+  }
+  
+  
+  
+  
   #Prepare the color vector
   MyColors <- df_long$MyColors
   names(MyColors) <- df_long$plot_taxa
@@ -427,14 +511,16 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   main_level_col[length(main_level_col)+1] <- '#000000'
   
   #Order the colors
-  names(main_level_col) <-c(pull(topx[,main_level]), paste0("Others "))
-  main_level_order <- factor( names(main_level_col), levels =names(main_level_col))
-  main_level_col <- main_level_col[order(match(main_level_col,  main_level_order))]
-  
-  #reorder main_level factor in order to create main_level legend
-
+  vec1 <- unique(df_long[,main_level])
+  vec2 <- c(pull(topx[,main_level]), paste0("Others"))
+  core_text_vec1 <- gsub("(<[^>]*>|\\*|\\s+$)", "", vec1)
+  core_text_vec1 <- trimws(core_text_vec1)
+  order_index <- match(vec2, core_text_vec1)
+  vec1_reordered <- vec1[order_index]
+  names(main_level_col) <- as.character(vec1[order_index])
   df_long[,main_level] <- factor(df_long[,main_level], levels = names(main_level_col))
   
+  #plot
   p <-
     ggplot(df_long, aes(
       x = !!as.name(sample_name),
@@ -486,3 +572,6 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   }
   
 }
+
+
+
