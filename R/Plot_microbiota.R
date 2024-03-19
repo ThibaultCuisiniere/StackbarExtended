@@ -530,7 +530,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     )) +
     geom_bar(stat = "identity", width = 0.85) +
     ylab("Relative abundance (%)\n") +
-    guides(fill = guide_legend(reverse = FALSE, title = sub_level)) +
+    guides(fill = guide_legend(reverse = FALSE, title = sub_level, order = 2)) +
     theme(
       line = element_line(colour = "black", linewidth = .5),
       text = element_text(size = 9),
@@ -557,7 +557,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     geom_bar(aes(alpha = df_long[, main_level]), stat = "identity", show.legend = TRUE) +
     scale_alpha_manual(
       values = rep(1, length(unique(df_long[, main_level]))),
-      guide = guide_legend(override.aes = list(fill = main_level_col)),
+      guide = guide_legend(order = 1,override.aes = list(fill = main_level_col)),
       name = main_level
     ) +
     scale_fill_manual('plot_taxa', values = MyColors2)
