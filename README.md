@@ -50,18 +50,16 @@ devtools::install_github("ThibaultCuisiniere/StackbarExtended")
 ## Usage
 
 ```
-data(GlobalPatterns)
-ps_unfiltered <- GlobalPatterns
+data(ps)
 
 my_plot <- plot_gut_microbiota(
-ps_object = ps_unfiltered,
-exp_group = 'SampleType',
-subset_group = c("Feces", "Mock"),
-sample_name = 'X.SampleID',
-hues = c("Greens", "Blues", "Oranges", "Purples"),
-differential_analysis = T,
-sig_lab = T,
-fdr_threshold = 0.05
+ps_object = ps,
+  exp_group = 'timepoint',
+  sample_name = 'SampleID',
+  hues = c("Purples", "Blues", "Greens", "Oranges"),
+  differential_analysis = T,
+  sig_lab = T,
+  fdr_threshold = 0.05
 )
 
 print(my_plot$plot)
