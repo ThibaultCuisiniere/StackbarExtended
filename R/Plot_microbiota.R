@@ -261,7 +261,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
       getPalette(length(unique(temp$plot_taxa)) + 1)
     
     #store the darkestcolor of the palette to plot main_level legend graph
-    if (length(col) >= 2) {
+    if (length(col) >= 3) {
       main_level_col[i] <-   col[length(col)-1]
     } else {
       main_level_col[i] <-   col[length(col)]
