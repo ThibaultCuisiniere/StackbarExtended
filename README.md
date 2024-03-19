@@ -56,7 +56,7 @@ ps_unfiltered <- GlobalPatterns
 my_plot <- plot_gut_microbiota(
 ps_object = ps_unfiltered,
 exp_group = 'SampleType',
-subset_group = c("Feces", "Skin"),
+subset_group = c("Feces", "Mock"),
 sample_name = 'X.SampleID',
 hues = c("Greens", "Blues", "Oranges", "Purples"),
 differential_analysis = T,
