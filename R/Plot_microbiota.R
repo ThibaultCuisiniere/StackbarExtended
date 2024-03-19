@@ -199,7 +199,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
         high_abundance == TRUE  &
           selected_top == TRUE &
           !!as.name(sub_level) == "Unkwown"  ~
-          paste0("Others ",!!as.name(main_level)),
+          paste0("Unkwown ",!!as.name(main_level)),
         high_abundance == TRUE  &
           selected_top == TRUE  &
           !!as.name(sub_level) != "Unkwown"  ~ !!as.name(sub_level),
@@ -355,7 +355,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     # Run DESeq2 analysis
     diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
                  betaPrior = betaPrior, quiet= quiet, 
-                 minReplicatesForReplace = minReplicatesForReplace)
+                 minReplicatesForReplace = minReplicatesForReplace, useT = useT)
     
     # Get the differentially abundant features
     results <- results(diag)
@@ -434,7 +434,7 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     # Run DESeq2 analysis
     diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
                       betaPrior = betaPrior, quiet= quiet, 
-                      minReplicatesForReplace = minReplicatesForReplace)
+                      minReplicatesForReplace = minReplicatesForReplace, useT = useT)
     
     # Get the differentially abundant features
     results_main <- results(diag_main)
@@ -511,14 +511,15 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
   main_level_col[length(main_level_col)+1] <- '#000000'
   
   #Order the colors
+  df_long[,main_level] <- factor(df_long[,main_level], levels = unique(df_long[,main_level]))
+  
   vec1 <- unique(df_long[,main_level])
   vec2 <- c(pull(topx[,main_level]), paste0("Others"))
   core_text_vec1 <- gsub("(<[^>]*>|\\*|\\s+$)", "", vec1)
   core_text_vec1 <- trimws(core_text_vec1)
-  order_index <- match(vec2, core_text_vec1)
-  vec1_reordered <- vec1[order_index]
-  names(main_level_col) <- as.character(vec1[order_index])
-  df_long[,main_level] <- factor(df_long[,main_level], levels = names(main_level_col))
+  order_index <- match( core_text_vec1, vec2)
+  main_level_col <- main_level_col[order_index]
+  names(main_level_col) <- as.character(vec1)
   
   #plot
   p <-
