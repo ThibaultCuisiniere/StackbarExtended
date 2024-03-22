@@ -21,14 +21,13 @@
 #' @param fitType Default "parametric". See [DESeq2-package].
 #' @param sfType Default "ratio". See [DESeq2-package].
 #' @param betaPrior Default FALSE.See [DESeq2-package].
-#' @param reduced Default FALSE. See [DESeq2-package].
+#' @param reduced Default FALSE. See [DESeq2-package]. For example: "~1".
 #' @param quiet Default FALSE. See [DESeq2-package].
 #' @param minReplicatesForReplace Default '7'. See [DESeq2-package].
 #' @param modelMatrixType Default "standard". See [DESeq2-package].
 #' @param useT Default FALSE. See [DESeq2-package].
 #' @param minmu See [DESeq2-package].
 #' @param parallel Default FALSE. See [DESeq2-package].
-#' @param BPPARAM See [DESeq2-package].
 #' @param ... additionnal parameters passed into the \code{\link{phyloseq_to_deseq2}} functions, see [Phyloseq].
 #' 
 #'
@@ -38,20 +37,20 @@
 #' @examples
 #' 
 #' \dontrun{
-#' data(GlobalPatterns)
-#' ps_unfiltered <- GlobalPatterns
-#' 
-#' my_plot <- plot_gut_microbiota(ps_object = ps_unfiltered,
-#' exp_group = 'SampleType',
-#' subset_group = c("Feces", "Skin"),
-#' sample_name = 'X.SampleID',
-#' hues = c("Greens", "Blues", "Oranges", "Purples"),
-#' differential_analysis = T,
-#' sig_lab = T,
-#' fdr_threshold = 0.05)
-#' 
-#' print(my_plot$plot)
-#' print(my_plot$significant_table)
+#,data(ps)
+#,
+#,my_plot <- plot_gut_microbiota(
+#,  ps_object = ps,
+#,  exp_group = 'timepoint',
+#,  sample_name = 'SampleID',
+#,  hues = c("Purples", "Blues", "Greens", "Oranges"),
+#,  differential_analysis = T,
+#,  sig_lab = T,
+#,  fdr_threshold = 0.05
+#,)
+#,
+#,print(my_plot$plot)
+#,print(my_plot$significant_table)
 #'
 #'}
 #'
@@ -75,7 +74,7 @@
 
 
 
-plot_gut_microbiota <- function(ps_object = ps_unfiltered,
+plot_gut_microbiota <- function(ps_object = ps,
                                 exp_group = 'group',
                                 subset_group = NULL,
                                 sample_name = 'SampleID',
@@ -100,7 +99,6 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
                                 useT = FALSE,
                                 minmu = if (fitType == "glmGamPoi") 1e-06 else 0.5,
                                 parallel = FALSE,
-                                BPPARAM = bpparam(),
                                 fdr_threshold = 0.05,
                                 sig_lab = T,
                                 ...) {
@@ -353,9 +351,25 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     diagdds = phyloseq_to_deseq2(fam_glom,  formula(paste("~", exp_group)))
     
     # Run DESeq2 analysis
-    diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
-                 betaPrior = betaPrior, quiet= quiet, 
-                 minReplicatesForReplace = minReplicatesForReplace, useT = useT)
+    if (test == "Wald"){
+      
+      
+      
+      diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    }else {
+      
+      diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    }
     
     # Get the differentially abundant features
     results <- results(diag)
@@ -432,9 +446,23 @@ plot_gut_microbiota <- function(ps_object = ps_unfiltered,
     diagdds_main = phyloseq_to_deseq2(main_glom,  formula(paste("~", exp_group)))
     
     # Run DESeq2 analysis
-    diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
-                      betaPrior = betaPrior, quiet= quiet, 
-                      minReplicatesForReplace = minReplicatesForReplace, useT = useT)
+    if (test == "Wald"){
+      
+      diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    }else {
+      
+      diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    }
     
     # Get the differentially abundant features
     results_main <- results(diag_main)
