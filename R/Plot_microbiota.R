@@ -609,13 +609,14 @@ if(mean_group == F) {
       sum = sum(as.double(value)))
   df_long <- data.frame(df_long)
   
+i<-1
+for (i in 1: length(unique(df_long[,exp_group]))) {
   
+  df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[i]] <- df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[i]]/count(meta[,exp_group] == unique(meta[,exp_group])[i])
   
-  
-  df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[1]] <- df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[1]]/count(meta[,exp_group] == unique(meta[,exp_group])[1])
-  df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[2]] <- df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[2]]/count(meta[,exp_group] == unique(meta[,exp_group])[2])
-  
-  colnames(df_long)[colnames(df_long) == "sum"] <- "value"  
+}
+
+colnames(df_long)[colnames(df_long) == "sum"] <- "value"  
   
   
   
