@@ -16,7 +16,7 @@ a Question</a>
  StackbarExtended is an R package including methods to automatically plot and perform differential abundance analysis of compositional data.
 A major advantage of StackbarExtended is that it integrates graphical representation of the samples' composition and differential abundance results into a single, publication-ready figure, while allowing a high level of personalization and being easy to use.
 
-The main function `plot_gut_microbiota()` function uses the [`DESeq2`](https://github.com/thelovelab/DESeq2), [`Phyloseq`](https://github.com/joey711/phyloseq) and [`ggplot2`](https://github.com/tidyverse/ggplot2) packages in combination. 
+The main function `plot_microbiota()` function uses the [`DESeq2`](https://github.com/thelovelab/DESeq2), [`Phyloseq`](https://github.com/joey711/phyloseq) and [`ggplot2`](https://github.com/tidyverse/ggplot2) packages in combination. 
 
 <details>
 
@@ -52,7 +52,7 @@ devtools::install_github("ThibaultCuisiniere/StackbarExtended")
 ```
 data(ps)
 
-my_plot <- plot_gut_microbiota(
+my_plot <- plot_microbiota(
   ps_object = ps,
   exp_group = 'timepoint',
   sample_name = 'SampleID',

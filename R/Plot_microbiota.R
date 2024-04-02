@@ -10,6 +10,7 @@
 #' @param sub_level Default 'Family'. Level present in the [tax_table] to which taxa will be plotted and analyzed.
 #' @param threshold Default 1%, threshold to regroup taxa with lower relative abundance into the 'other' groups
 #' @param n_phy Default 4, number of main_level to plot. Same number of colors must be given in the 'hues' parameter.
+#' @param mean_group Default FALSE. Whether or not agglomerate samples belonging to the same exp_group.
 #' @param hues Color used to represent main_level, should be the same number than n_phy parameter. See [colorRampPalette].
 #' @param color_bias Define the gradiant of shades among the colors. See [colorRampPalette].
 #' @param text_size Control the text size of the graph. See [ggplot2].
@@ -17,6 +18,7 @@
 #' @param x_axis_size Control the x axis text size of the graph. see ggplot2. See [ggplot2].
 #' @param differential_analysis Default TRUE. Whether or not use DESeq2 to do a differential abundance analysis. See [DESeq2-package].
 #' @param test Default 'Wald'. See [DESeq2-package].
+#' @param fdr_threshold Default '0.05'. Threshold to which taxa bellow are considered significant.
 #' @param sig_lab Default TRUE. Whether to add stars after taxa name reflecting statistical significance. 
 #' @param fitType Default "parametric". See [DESeq2-package].
 #' @param sfType Default "ratio". See [DESeq2-package].
@@ -28,7 +30,6 @@
 #' @param useT Default FALSE. See [DESeq2-package].
 #' @param minmu See [DESeq2-package].
 #' @param parallel Default FALSE. See [DESeq2-package].
-#' @param ... additionnal parameters passed into the \code{\link{phyloseq_to_deseq2}} functions, see [Phyloseq].
 #' 
 #'
 #'
@@ -39,7 +40,7 @@
 #' \dontrun{
 #,data(ps)
 #,
-#,my_plot <- plot_gut_microbiota(
+#,my_plot <- plot_microbiota(
 #,  ps_object = ps,
 #,  exp_group = 'timepoint',
 #,  sample_name = 'SampleID',
@@ -74,7 +75,7 @@
 
 
 
-plot_gut_microbiota <- function(ps_object = ps,
+plot_microbiota <- function(ps_object = ps,
                                 exp_group = 'group',
                                 subset_group = NULL,
                                 sample_name = 'SampleID',
@@ -82,6 +83,7 @@ plot_gut_microbiota <- function(ps_object = ps,
                                 sub_level = 'Family',
                                 threshold = 1,
                                 n_phy = 4,
+                                mean_group = FALSE,
                                 hues = c("Oranges", "Greens", "Blues", "Purples"),
                                 color_bias = 2,
                                 text_size = 9,
@@ -89,6 +91,8 @@ plot_gut_microbiota <- function(ps_object = ps,
                                 x_axis_size = 8,
                                 differential_analysis = T,
                                 test = c("Wald", "LRT")[1],
+                                fdr_threshold = 0.05,
+                                sig_lab = TRUE,
                                 fitType = c("parametric", "local", "mean", "glmGamPoi")[1],
                                 sfType = c("ratio", "poscounts", "iterate")[1],
                                 betaPrior = FALSE,
@@ -98,10 +102,8 @@ plot_gut_microbiota <- function(ps_object = ps,
                                 modelMatrixType = c("standard", "expanded")[1],
                                 useT = FALSE,
                                 minmu = if (fitType == "glmGamPoi") 1e-06 else 0.5,
-                                parallel = FALSE,
-                                fdr_threshold = 0.05,
-                                sig_lab = T,
-                                ...) {
+                                parallel = FALSE
+                                ) {
   
   
   
@@ -361,7 +363,7 @@ plot_gut_microbiota <- function(ps_object = ps,
                    modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
                    parallel = parallel)
       
-    }else {
+    } else {
       
       diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
                    betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
@@ -550,6 +552,10 @@ plot_gut_microbiota <- function(ps_object = ps,
   names(main_level_col) <- as.character(vec1)
   
   #plot
+  
+if(mean_group == F) {  
+  
+  
   p <-
     ggplot(df_long, aes(
       x = !!as.name(sample_name),
@@ -592,6 +598,76 @@ plot_gut_microbiota <- function(ps_object = ps,
   p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x")
   
   p
+  
+} else {
+  
+  
+  df_long <- df_long %>% 
+    group_by(!!as.name(exp_group), plot_taxa, !!as.name(main_level)) %>%
+    reframe(
+      n = n(),
+      sum = sum(as.double(value)))
+  df_long <- data.frame(df_long)
+  
+  
+  
+  
+  df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[1]] <- df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[1]]/count(meta[,exp_group] == unique(meta[,exp_group])[1])
+  df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[2]] <- df_long[,"sum"][df_long[,exp_group] == unique(df_long[,exp_group] )[2]]/count(meta[,exp_group] == unique(meta[,exp_group])[2])
+  
+  colnames(df_long)[colnames(df_long) == "sum"] <- "value"  
+  
+  
+  
+  #plot
+  p <-
+    ggplot(df_long, aes(
+      x = !!as.name(exp_group),
+      y = value,
+      fill = plot_taxa
+    )) +
+    geom_bar(stat = "identity", width = 0.85) +
+    ylab("Relative abundance (%)\n") +
+    guides(fill = guide_legend(reverse = FALSE, title = sub_level, order = 2)) +
+    theme(
+      line = element_line(colour = "black", linewidth = .5),
+      text = element_text(size = 9),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      axis.line = element_line(colour = "black", linewidth = .5)
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.border = element_blank(),
+      legend.position = "right",
+      legend.box = "vertical",
+      axis.text.x = element_text(
+        angle = 45,
+        hjust = 1,
+        size = x_axis_size
+      ),
+      text = element_text(size = text_size),
+      legend.text = element_markdown(size = legend_size)
+    ) +
+    geom_bar(aes(alpha = df_long[, main_level]), stat = "identity", show.legend = TRUE) +
+    scale_alpha_manual(
+      values = rep(1, length(unique(df_long[, main_level]))),
+      guide = guide_legend(order = 1,override.aes = list(fill = main_level_col)),
+      name = main_level
+    ) +
+    scale_fill_manual('plot_taxa', values = MyColors2)
+  p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x")
+  
+  p
+  
+  
+  
+}
+  
+  
   
   if (differential_analysis == T) {
     return(list(significant_table = significant_features, plot = p))
