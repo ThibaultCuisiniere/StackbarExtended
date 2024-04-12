@@ -63,7 +63,8 @@ my_plot <- plot_microbiota(
 )
 
 print(my_plot$plot)
-print(my_plot$significant_table)
+print(my_plot$significant_table_main)
+print(my_plot$significant_table_sub)
 
 ```
 
