@@ -1,6 +1,6 @@
-#' Clustered stackbar coupled with DESeq2
+#' @title Clustered stackbar coupled with DESeq2
 #'
-#' Create a plot of taxa relative abundance, clustered by phylogeny with the possibility to highlight the differentially abundant features.
+#' @description Create a plot of taxa relative abundance, clustered by phylogeny with the possibility to highlight the differentially abundant features.
 #' 
 #' @param ps_object A [phyloseq-class] object. Must have a [sample_data], [otu_table], and [tax_table] components.
 #' @param exp_group A column in the [sample_data] containing the experimental group information.
@@ -8,23 +8,27 @@
 #' @param sample_name Name of the column in [sample_data] containing the unique sample identifier.
 #' @param main_level  Default 'Phylum'. Level present in the [tax_table] to which taxa will be clustered.
 #' @param sub_level Default 'Family'. Level present in the [tax_table] to which taxa will be plotted and analyzed.
-#' @param threshold Default 1%, threshold to regroup taxa with lower relative abundance into the 'other' groups
+#' @param threshold Default 1, % threshold to regroup taxa with lower relative abundance into the 'other' groups
 #' @param n_phy Default 4, number of main_level to plot. Same number of colors must be given in the 'hues' parameter.
 #' @param mean_group Default FALSE. Whether or not agglomerate samples belonging to the same exp_group.
 #' @param hues Color used to represent main_level, should be the same number than n_phy parameter. See [colorRampPalette].
 #' @param color_bias Define the gradiant of shades among the colors. See [colorRampPalette].
+#' @param n_row Default 1. Define the number of row of the graph. See [facet_wrap]
+#' @param n_col Default NULL. Define the number of column of the graph. See [facet_wrap]
 #' @param text_size Control the text size of the graph. See [ggplot2].
 #' @param legend_size Control the legend text size of the graph. see ggplot2. See [ggplot2].
 #' @param x_axis_size Control the x axis text size of the graph. see ggplot2. See [ggplot2].
 #' @param differential_analysis Default TRUE. Whether or not use DESeq2 to do a differential abundance analysis. See [DESeq2-package].
+#' @param mult_comp Default False. Whether or not perform  differential abundance analysis pairwise comparisons. 
+#' @param selected_comparisons Default NULL. A list of vectors of length 2 to subset differential abundance analysis pairwise comparisons. Example: "list(c("0", "7"), c("0", "21"), c("0", "90"))"
 #' @param test Default 'Wald'. See [DESeq2-package].
 #' @param fdr_threshold Default '0.05'. Threshold to which taxa bellow are considered significant.
-#' @param sig_lab Default TRUE. Whether to add stars after taxa name reflecting statistical significance. 
+#' @param sig_lab Default TRUE. Whether to add stars after taxa name reflecting statistical significance. Only available for 2 groups comparison.
 #' @param fitType Default "parametric". See [DESeq2-package].
 #' @param sfType Default "ratio". See [DESeq2-package].
 #' @param betaPrior Default FALSE.See [DESeq2-package].
 #' @param reduced Default FALSE. See [DESeq2-package]. For example: "~1".
-#' @param quiet Default FALSE. See [DESeq2-package].
+#' @param quiet Default TRUE. See [DESeq2-package].
 #' @param minReplicatesForReplace Default '7'. See [DESeq2-package].
 #' @param modelMatrixType Default "standard". See [DESeq2-package].
 #' @param useT Default FALSE. See [DESeq2-package].
@@ -33,27 +37,30 @@
 #' 
 #'
 #'
-#' @return A [list] containing  [ggplot2] '$plot' object and, if differential_analysis = TRUE, a [dataframe] from \code{\link{results}} DESeq2 function output of significant features '$significant_table'.
+#' @return A [list] containing  [ggplot2] '$plot' object and, if differential_analysis = TRUE, [data.frame] from \code{\link{results}} DESeq2 function output of significant features '$significant_table_main' and '$significant_table_sub' .
 #'
 #' @examples
 #' 
 #' \dontrun{
-#,data(ps)
-#,
-#,my_plot <- plot_microbiota(
-#,  ps_object = ps,
-#,  exp_group = 'timepoint',
-#,  sample_name = 'SampleID',
-#,  hues = c("Purples", "Blues", "Greens", "Oranges"),
-#,  differential_analysis = T,
-#,  sig_lab = T,
-#,  fdr_threshold = 0.05
-#,)
-#,
-#,print(my_plot$plot)
-#,print(my_plot$significant_table)
+#' 
+#'data(ps)
 #'
-#'}
+#'my_plot <- plot_microbiota(
+#'  ps_object = ps,
+#'  exp_group = 'timepoint',
+#'  sample_name = 'SampleID',
+#'  hues = c("Purples", "Blues", "Greens", "Oranges"),
+#'  differential_analysis = T,
+#'  sig_lab = T,
+#'  fdr_threshold = 0.05
+#' )
+#'
+#'print(my_plot$plot)
+#'print(my_plot$significant_table_main)
+#'print(my_plot$significant_table_sub)
+#' 
+#'
+#'  }
 #'
 #' @export
 #' 
@@ -86,18 +93,22 @@ plot_microbiota <- function(ps_object = ps,
                                 mean_group = FALSE,
                                 hues = c("Oranges", "Greens", "Blues", "Purples"),
                                 color_bias = 2,
+                                n_row = 1,
+                                n_col = NULL,
                                 text_size = 9,
                                 legend_size = 7,
                                 x_axis_size = 8,
-                                differential_analysis = T,
+                                differential_analysis = FALSE,
+                                mult_comp = FALSE,
+                                selected_comparisons = NULL,
                                 test = c("Wald", "LRT")[1],
                                 fdr_threshold = 0.05,
-                                sig_lab = TRUE,
+                                sig_lab = FALSE,
                                 fitType = c("parametric", "local", "mean", "glmGamPoi")[1],
                                 sfType = c("ratio", "poscounts", "iterate")[1],
                                 betaPrior = FALSE,
                                 reduced = FALSE,
-                                quiet = FALSE,
+                                quiet = TRUE,
                                 minReplicatesForReplace = 7,
                                 modelMatrixType = c("standard", "expanded")[1],
                                 useT = FALSE,
@@ -330,11 +341,12 @@ plot_microbiota <- function(ps_object = ps,
   if (differential_analysis &&
       length(unique(meta[[exp_group]])) != 2) {
     print(
-      "The number of experimental group to test is not equal to 2, no differential abundance testing will be perform"
+      "The number of experimental group to test is not equal to 2, no statistical significance will appear in the legend"
     )
-    differential_analysis <- F
+    mult_comp <- T
     
   }
+  
   
   
   # Differential abundance analysis on sub_level using DESeq2 : 2 groups only
@@ -385,9 +397,13 @@ plot_microbiota <- function(ps_object = ps,
     } else {
       #We have significantly different taxa, we link them to their sub_level
       
+      
       significant_features <-
         as.data.frame(cbind(significant_features,
                             tax_table(fam_glom)[rownames(tax_table(fam_glom)) %in% rownames(significant_features)]))
+      
+      #store the sig table to return it 
+      significant_features_sub <- significant_features
       
       # Add information to df_long to mark differentially abundant features
       df_long$differential_abundance <- FALSE
@@ -430,7 +446,6 @@ plot_microbiota <- function(ps_object = ps,
   }
   
   
-  
   # Differential abundance analysis on main_level using DESeq2 : 2 groups only
   if (differential_analysis &&
       length(unique(meta[[exp_group]])) == 2) {
@@ -451,18 +466,18 @@ plot_microbiota <- function(ps_object = ps,
     if (test == "Wald"){
       
       diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
-                   betaPrior = betaPrior, quiet= quiet, 
-                   minReplicatesForReplace = minReplicatesForReplace,
-                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
-                   parallel = parallel)
+                        betaPrior = betaPrior, quiet= quiet, 
+                        minReplicatesForReplace = minReplicatesForReplace,
+                        modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                        parallel = parallel)
       
     }else {
       
       diag_main = DESeq(diagdds_main, test = test, fitType = fitType, sfType = sfType, 
-                   betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
-                   minReplicatesForReplace = minReplicatesForReplace,
-                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
-                   parallel = parallel)
+                        betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
+                        minReplicatesForReplace = minReplicatesForReplace,
+                        modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                        parallel = parallel)
       
     }
     
@@ -482,6 +497,7 @@ plot_microbiota <- function(ps_object = ps,
         as.data.frame(cbind(significant_features_main,
                             tax_table(main_glom)[rownames(tax_table(main_glom)) %in% rownames(significant_features_main)]))
       
+
       # Add information to df_long to mark differentially abundant features
       df_long$differential_abundance_main <- FALSE
       df_long$differential_abundance_main[df_long[,main_level] %in% significant_features_main[, main_level]] <-
@@ -507,6 +523,8 @@ plot_microbiota <- function(ps_object = ps,
         star_vec_main[is.na(star_vec_main)]  <- ""
         df_long[,main_level] <- paste0(df_long[,main_level], " ", star_vec_main)
         
+        #remove the stars column from the datafram 
+        significant_features_main <-  significant_features_main[ ,-c(ncol(significant_features_main)) ]
         
       }
       
@@ -528,6 +546,201 @@ plot_microbiota <- function(ps_object = ps,
   }
   
   
+  # Differential abundance analysis on sub_level using DESeq2 : multiple comparisons
+  if (differential_analysis && mult_comp == T) {
+    
+    fam_glom <- tax_glom(ps_object, taxrank = sub_level)
+    
+    #remove OTU with 0 count across the dataset
+    
+    if (sum(rowSums(otu_table(fam_glom)) == 0) > 0) {
+      fam_glom <-
+        prune_taxa(rowSums(otu_table(fam_glom)) > 0, fam_glom)
+      
+    }
+    
+    diagdds = phyloseq_to_deseq2(fam_glom,  formula(paste("~", exp_group)))
+    
+    # Run DESeq2 analysis
+    if (test == "Wald"){
+      
+      diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    } else {
+      
+      diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    }
+    
+    comparisons <- combn(levels(meta[[exp_group]]), 2, simplify = FALSE)
+    
+    if (is.null(selected_comparisons) == F)  {
+      
+      # Filter only selected comparisons
+      comparisons <- Filter(function(cmp) {
+        any(sapply(selected_comparisons, function(sel) all(sel == cmp)))
+      }, comparisons)
+    }
+    
+    
+    # Generate names for the results based on comparisons
+    comparison_names <- sapply(comparisons, function(cmp) paste(cmp, collapse = "_vs_"))
+    
+    # Using correctly formatted contrasts based on results names
+    results_list <- list()
+    results_list <- lapply(comparisons, function(cmp) {
+      contrast_vec <- c(exp_group, cmp[1], cmp[2])  # cmp[1] is the numerator, cmp[2] is the denominator
+      tryCatch({
+        res <- results(diag, contrast = contrast_vec)
+        return(res)
+      }, error = function(e) {
+        message("Failed to compute results for comparison: ", paste(cmp, collapse = " vs "), "\nError: ", e$message)
+        return(NULL)  
+      })
+    })
+    
+    # Set names based on comparisons
+    results_list <- setNames(results_list, comparison_names)
+    
+    
+    # Initialize an empty list to store significant features for each comparison
+    significant_features_sub <- list()
+    
+    # Iterate over the results_list to process each comparison
+    for (i in seq_along(results_list)) {
+      res <- results_list[[i]]
+      comparison_name <- names(results_list)[i]
+      
+      # Apply the significance threshold
+      significant_features <- subset(res, padj < fdr_threshold)
+      
+      # Check if significant features were detected
+      if (nrow(significant_features) == 0) {
+        message("No significant feature detected for comparison ", comparison_name ," at the ", sub_level, " level.")
+      } else {
+        # Link significant features with their taxonomy information
+        significant_features <- cbind(
+          significant_features,
+          tax_table(fam_glom)[rownames(tax_table(fam_glom)) %in% rownames(significant_features), , drop = FALSE]
+        )
+        
+        # Convert to data frame and add to the list
+        significant_features <- as.data.frame(significant_features)
+        significant_features_sub[[comparison_name]] <- significant_features
+      }
+    }
+    
+    
+    
+    
+    
+  }
+  
+  # Differential abundance analysis on main_level using DESeq2 : multiple comparisons
+  if (differential_analysis && mult_comp == T) {
+    
+    main_glom <- tax_glom(ps_object, taxrank = main_level)
+    
+    #remove OTU with 0 count across the dataset
+    
+    if (sum(rowSums(otu_table(main_glom)) == 0) > 0) {
+      fam_glom <-
+        prune_taxa(rowSums(otu_table(main_glom)) > 0, main_glom)
+      
+    }
+    
+    diagdds = phyloseq_to_deseq2(main_glom,  formula(paste("~", exp_group)))
+    
+    # Run DESeq2 analysis
+    if (test == "Wald"){
+      
+      diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    } else {
+      
+      diag = DESeq(diagdds, test = test, fitType = fitType, sfType = sfType, 
+                   betaPrior = betaPrior, reduced = formula(reduced), quiet= quiet, 
+                   minReplicatesForReplace = minReplicatesForReplace,
+                   modelMatrixType = modelMatrixType, useT = useT, minmu = minmu,
+                   parallel = parallel)
+      
+    }
+    
+    
+    comparisons <- combn(levels(meta[[exp_group]]), 2, simplify = FALSE)
+    
+    if (is.null(selected_comparisons) == F)  {
+      
+      # Filter only selected comparisons
+      comparisons <- Filter(function(cmp) {
+        any(sapply(selected_comparisons, function(sel) all(sel == cmp)))
+      }, comparisons)
+    }
+    
+    # Generate names for the results based on comparisons
+    comparison_names <- sapply(comparisons, function(cmp) paste(cmp, collapse = "_vs_"))
+    
+    # Using correctly formatted contrasts based on results names
+    results_list <- list()
+    results_list <- lapply(comparisons, function(cmp) {
+      contrast_vec <- c(exp_group, cmp[1], cmp[2])  # cmp[1] is the numerator, cmp[2] is the denominator
+      tryCatch({
+        res <- results(diag, contrast = contrast_vec)
+        return(res)
+      }, error = function(e) {
+        message("Failed to compute results for comparison: ", paste(cmp, collapse = " vs "), "\nError: ", e$message)
+        return(NULL)  
+      })
+    })
+    
+    # Set names based on comparisons
+    results_list <- setNames(results_list, comparison_names)
+    
+    
+    # Initialize an empty list to store significant features for each comparison
+    significant_features_main <- list()
+    
+    # Iterate over the results_list to process each comparison
+    for (i in seq_along(results_list)) {
+      res <- results_list[[i]]
+      comparison_name <- names(results_list)[i]
+      
+      # Apply the significance threshold
+      significant_features <- subset(res, padj < fdr_threshold)
+      
+      # Check if significant features were detected
+      if (nrow(significant_features) == 0) {
+        message("No significant feature detected for comparison ", comparison_name," at the ", main_level, " level.")
+      } else {
+        # Link significant features with their taxonomy information
+        significant_features <- cbind(
+          significant_features,
+          tax_table(main_glom)[rownames(tax_table(main_glom)) %in% rownames(significant_features), , drop = FALSE]
+        )
+        
+        # Convert to data frame and add to the list
+        significant_features <- as.data.frame(significant_features)
+        significant_features_main[[comparison_name]] <- significant_features
+      }
+    }
+    
+    
+    
+    
+    
+  }
   
   
   #Prepare the color vector
@@ -595,7 +808,7 @@ if(mean_group == F) {
       name = main_level
     ) +
     scale_fill_manual('plot_taxa', values = MyColors2)
-  p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x")
+  p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x", nrow = n_row, ncol = n_col)
   
   p
   
@@ -660,7 +873,7 @@ colnames(df_long)[colnames(df_long) == "sum"] <- "value"
       name = main_level
     ) +
     scale_fill_manual('plot_taxa', values = MyColors2)
-  p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x")
+  p <- p + facet_wrap( ~ df_long[[exp_group]] , scales  = "free_x", nrow = n_row, ncol = n_col)
   
   p
   
@@ -670,14 +883,20 @@ colnames(df_long)[colnames(df_long) == "sum"] <- "value"
   
   
   
-  if (differential_analysis == T) {
-    return(list(significant_table = significant_features, plot = p))
+  if (differential_analysis == T ) {
+    
+    return(
+      list(
+        significant_table_main = significant_features_main,
+        significant_table_sub = significant_features_sub,
+        plot = p
+      )
+    )
     
   } else {
     return(list(plot = p))
   }
   
-}
-
+}  
 
 
