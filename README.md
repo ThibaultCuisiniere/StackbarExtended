@@ -68,6 +68,31 @@ print(my_plot$significant_table_sub)
 
 ```
 
+<details>
+
+<summary>Personalization</summary>
+
+<br>
+
+The plot_microbiota function demonstrates a high level of personalization through its extensive array of parameters, enabling users to finely tune the resulting plot to their specific needs and preferences. See [`plot_microbiota`](https://github.com/ThibaultCuisiniere/StackbarExtended/blob/master/man/plot_microbiota.Rd) or enter the command ``` ?plot_microbiota``` in R. Key elements are:
+
+1. **Subsetting**: the function  allows subsetting of groups through  ```subset_group``` parameter, offering the possibility to analyse specific subsets of the data.
+
+2. **Taxonomic levels**: users can specify taxonomic levels for clustering ```main_level``` and plotting ```sub_level```.
+
+3. **Threshold and clustering**: the ```threshold``` parameter enables the regrouping of taxa with lower relative abundance, while ```n_phy``` determines the number of primary levels to plot.
+
+4. **Color customization**: The ```hues``` and ```color_bias``` parameters allow users to define color schemes and gradients.
+
+5. **Graph layout**: parameters  ```n_row``` and ```n_col``` control the layout of the graph, and ```text_size```, ```legend_size```, and ```x_axis_size``` adjust the size of the text elements.
+
+6. **Differential abundance analysis**: the ```differential_analysis```, ```mult_comp```, and ```selected_comparisons``` parameters enable the integration of differential abundance analysis using [`DESeq2`](https://github.com/thelovelab/DESeq2), with additional control over statistical testing and comparisons.
+
+7. **DESeq2 specifics**: users can customize the differential analysis further with DESeq2-specific parameters such as ```test```, ```fdr_threshold```, ```sig_lab```, ```fitType```, ```sfType```, ```betaPrior```, ```reduced```, ```quiet```, ```minReplicatesForReplace```, ```modelMatrixType```, ```useT```, ```minmu```, and ```parallel```. These parameters provide detailed control over the statistical methods and criteria used in the analysis. See [`DESeq2`](https://github.com/thelovelab/DESeq2).
+
+
+</details>
+
 
 ## Roadmap
 
