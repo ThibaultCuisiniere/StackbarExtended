@@ -86,7 +86,7 @@ The plot_microbiota function allows a high level of personalization through its 
 
 5. **Graph layout**: parameters  ```n_row``` and ```n_col``` control the layout of the graph, and ```text_size```, ```legend_size```, and ```x_axis_size``` adjust the size of the text elements.
 
-6. **Differential abundance analysis**: the ```differential_analysis```, ```mult_comp```, and ```selected_comparisons``` parameters enable the integration of differential abundance analysis using [`DESeq2`](https://github.com/thelovelab/DESeq2), with additional control over statistical testing and comparisons.
+6. **Differential abundance analysis**: the ```differential_analysis```, ```mult_comp```, and ```selected_comparisons``` parameters enable the integration of differential abundance analysis with ```sig_lab``` parameter using [`DESeq2`](https://github.com/thelovelab/DESeq2), with additional control over statistical testing and comparisons.
 
 7. **DESeq2 specifics**: users can customize the differential analysis further with DESeq2-specific parameters such as ```test```, ```fdr_threshold```, ```sig_lab```, ```fitType```, ```sfType```, ```betaPrior```, ```reduced```, ```quiet```, ```minReplicatesForReplace```, ```modelMatrixType```, ```useT```, ```minmu```, and ```parallel```. These parameters provide detailed control over the statistical methods and criteria used in the analysis. See [`DESeq2`](https://github.com/thelovelab/DESeq2).
 
