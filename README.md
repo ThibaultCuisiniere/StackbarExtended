@@ -74,9 +74,9 @@ print(my_plot$significant_table_sub)
 
 <br>
 
-The plot_microbiota function demonstrates a high level of personalization through its extensive array of parameters, enabling users to finely tune the resulting plot to their specific needs and preferences. See [`plot_microbiota`](https://github.com/ThibaultCuisiniere/StackbarExtended/blob/master/man/plot_microbiota.Rd) or enter the command ``` ?plot_microbiota``` in R. Key elements are:
+The plot_microbiota function allows a high level of personalization through its parameters, enabling users to finely tune the resulting plot to their specific needs. See [`plot_microbiota`](https://github.com/ThibaultCuisiniere/StackbarExtended/blob/master/man/plot_microbiota.Rd) or enter the command ```?plot_microbiota``` in R. Key elements are:
 
-1. **Subsetting**: the function  allows subsetting of groups through  ```subset_group``` parameter, offering the possibility to analyse specific subsets of the data.
+1. **Subsetting**: the function  allows subsetting of groups through  ```subset_group``` parameter, offering the possibility to analyse separately specific subsets of the data.
 
 2. **Taxonomic levels**: users can specify taxonomic levels for clustering ```main_level``` and plotting ```sub_level```.
 
