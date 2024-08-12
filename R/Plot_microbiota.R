@@ -200,7 +200,7 @@ plot_microbiota <- function(ps_object = ps,
                       selected_top = !!as.name(main_level) %in% pull(topx[, main_level]))
   
   #replace NA by "Unknown" 
-  otu_tax_f[is.na(otu_tax_f)] <- "Unkwown"
+  otu_tax_f[is.na(otu_tax_f)] <- "Unknown"
   
   #Add a column 'plot_taxa' to create the legend of the graphs :
   
@@ -209,17 +209,14 @@ plot_microbiota <- function(ps_object = ps,
       plot_taxa = case_when(
         high_abundance == TRUE  &
           selected_top == TRUE &
-          !!as.name(sub_level) == "Unkwown"  ~
-          paste0("Unkwown ",!!as.name(main_level)),
+          !!as.name(sub_level) == "Unknown"  ~
+          paste0("Unknown ",!!as.name(main_level)),
         high_abundance == TRUE  &
           selected_top == TRUE  &
-          !!as.name(sub_level) != "Unkwown"  ~ !!as.name(sub_level),
+          !!as.name(sub_level) != "Unknown"  ~ !!as.name(sub_level),
         high_abundance == FALSE &
           selected_top == TRUE  ~ paste0("Others ", !!as.name(main_level)),
-        selected_top   == FALSE ~ paste0("Others "),
-        high_abundance == TRUE  &
-          selected_top == TRUE &
-          is.na(!!as.name(sub_level)) == TRUE  ~ paste0("Unknown ", !!as.name(main_level))
+        selected_top   == FALSE ~ paste0("Others ")
       )
     )
   
