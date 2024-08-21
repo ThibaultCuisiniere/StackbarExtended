@@ -125,6 +125,7 @@ what make the open-source community such an amazing place to learn,
 inspire, and create. Any contributions you make will benefit everybody
 else and are **greatly appreciated**.
 
+The authors thanks Marco Constante (Department of Medicine, Farncombe Family Digestive Health Research Institute, McMaster University, Hamilton, Ontario, Canada) for his insight in developing the StackbarExtended package. We also thank Claire Gerkins and Claire McCartney (Nutrition and Microbiome Laboratory, Centre de recherche du Centre hospitalier de l’Université de Montréal (CRCHUM), Montréal, Québec, Canada) for their help in editing the manuscript.
 
 ## License
 
