@@ -485,7 +485,7 @@ plot_microbiota <- function(ps_object = ps,
     significant_features_main <- subset(results_main, padj < fdr_threshold)
     
     #Check if significant features were detected
-    if (nrow(significant_features) == 0) {
+    if (nrow(significant_features_main) == 0) {
       message("no significant feature detected at ", main_level, " level.")
     } else {
       #We have significantly different taxa, we link them to their sub_level
